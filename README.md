@@ -42,3 +42,5 @@ Beyond the instructions above, you can also clone this repository and use it as 
 If you want to watch everything live, there will be a screen in the room with a 3D view of all the current attempts. This will also contain the leaderboard, so you can see who's in the lead!
 
 Otherwise, check out `http://157.230.103.230:8080/` from the comfort of your own screen.
+
+![3D visualisation of a few on-going attempts](assets/drones.png)
