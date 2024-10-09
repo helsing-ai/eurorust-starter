@@ -12,7 +12,7 @@ pub mod drone {
 async fn main() -> Result<()> {
     let token = format!("Bearer {}", env!("USER"));
 
-    let channel = Channel::from_static("http://172.104.150.205:10301")
+    let channel = Channel::from_static("http://157.230.103.230:10301")
         .connect()
         .await?;
     let token: MetadataValue<_> = token.parse()?;
