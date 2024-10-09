@@ -12,7 +12,8 @@
     treefmt-nix.url = "github:numtide/treefmt-nix";
   };
 
-  outputs = inputs:
+  outputs =
+    inputs:
     inputs.flake-parts.lib.mkFlake { inherit inputs; } {
       systems = import inputs.systems;
       imports = [
@@ -22,35 +23,45 @@
         inputs.process-compose-flake.flakeModule
         inputs.cargo-doc-live.flakeModule
       ];
-      perSystem = { config, self', pkgs, lib, ... }: {
-        rust-project.crates."eurorust-2024-template".crane.args = {
-          buildInputs = lib.optionals pkgs.stdenv.isDarwin
-            (with pkgs.darwin.apple_sdk.frameworks; [
+      perSystem =
+        {
+          config,
+          self',
+          pkgs,
+          lib,
+          ...
+        }:
+        {
+          rust-project.crates."eurorust-2024-template".crane.args = {
+            buildInputs = [
               pkgs.proto
               pkgs.protobuf
               pkgs.grpc-tools
-              IOKit
-            ]);
-        };
-
-        # Add your auto-formatters here.
-        # cf. https://nixos.asia/en/treefmt
-        treefmt.config = {
-          projectRootFile = "flake.nix";
-          programs = {
-            nixpkgs-fmt.enable = true;
-            rustfmt.enable = true;
+            ] ++ lib.optionals pkgs.stdenv.isDarwin (with pkgs.darwin.apple_sdk.frameworks; [ IOKit ]);
+            PROTOC = "${pkgs.protobuf}/bin/protoc";
           };
-        };
 
-        devShells.default = pkgs.mkShell {
-          inputsFrom = [ self'.devShells.rust config.treefmt.build.devShell ];
-          packages = [
-            pkgs.cargo-watch
-            config.process-compose.cargo-doc-live.outputs.package
-          ];
+          # Add your auto-formatters here.
+          # cf. https://nixos.asia/en/treefmt
+          treefmt.config = {
+            projectRootFile = "flake.nix";
+            programs = {
+              nixpkgs-fmt.enable = true;
+              rustfmt.enable = true;
+            };
+          };
+
+          devShells.default = pkgs.mkShell {
+            inputsFrom = [
+              self'.devShells.rust
+              config.treefmt.build.devShell
+            ];
+            packages = [
+              pkgs.cargo-watch
+              config.process-compose.cargo-doc-live.outputs.package
+            ];
+          };
+          packages.default = self'.packages.eurorust-2024-template;
         };
-        packages.default = self'.packages.rust-nix-template;
-      };
     };
 }
