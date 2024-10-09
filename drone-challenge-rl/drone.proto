@@ -1,0 +1,83 @@
+// (c) Copyright 2023 Helsing GmbH. All rights reserved.
+
+syntax = "proto3";
+
+package drone;
+
+service DroneController {
+  rpc DroneConnection(stream DroneClientMsg) returns (stream DroneServerMsg);
+}
+
+service DroneObserver {
+  rpc Observe(ObserveRequest) returns (stream SimulationStates);
+}
+
+message ObserveRequest {}
+
+message SimulationStates {
+  repeated OngoingSimulation sims = 1;
+}
+
+message OngoingSimulation {
+  // the unique identifier for this simulation
+  int32 sim_id = 1;
+  // any helpful descriptive content to display about this simulation
+  string description = 2;
+  // the current location of the drone
+  Point drone_location = 3;
+  // the boundary the drone is operating within
+  Region boundary = 4;
+  // the goal the drone is heading towards
+  Region goal = 5;
+  // the current state of this simulation
+  SimStatus status = 6;
+}
+
+enum SimStatus {
+  RUNNING = 0;
+  FAILED = 1;
+  SUCCEEDED = 2;
+}
+
+message DroneClientMsg {
+  // ranges between 0 and 100, and represents force applied by the drone's rotors
+  int32 throttle = 1;
+  // ranges between -45 and 45 degrees, roll controls movement in the y axis
+  int32 roll = 2;
+  // ranges between -45 and 45 degrees, pitch controls movement in the x axis
+  int32 pitch = 3;
+}
+
+message Point {
+  float x = 1;
+  float y = 2;
+  float z = 3;
+}
+
+message Region {
+  Point minimal_point = 1;
+  Point maximal_point = 2;
+}
+
+message DroneServerMsg {
+  message SimOver {
+    bool success = 1;
+    optional string details = 2;
+  }
+
+  message SimStart {
+    Point drone_location = 1;
+    Region boundary = 2;
+    Region goal = 3;
+  }
+
+  message SimUpdate {
+    Point drone_location = 1;
+  }
+
+  oneof data {
+    SimStart start = 1;
+    SimOver ended = 2;
+    SimUpdate update = 3;
+  }
+}
